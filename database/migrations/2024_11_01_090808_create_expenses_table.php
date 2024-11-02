@@ -15,13 +15,14 @@ return new class extends Migration
         Schema::dropIfExists('expenses');
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->references('id')->on('users');
-            $table->timestamps();
-            $table->enum('category', ['hébergement', 'nourriture', 'transport', 'communication', 'santé']);
+            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->string('title');
+            $table->enum('category', ['logement', 'alimentation', 'transport', 'communication', 'santé','loisir', 'autre']);
             $table->decimal('amount', total:8, places:2);
-            $table->enum('currency', ['euro €', 'yuan ¥', 'bath ฿']);
+            $table->enum('currency', ['CNY', 'THB', 'EUR']);
             $table->date('date');
-            $table->text('note')->charset('binary'); //BLOB Binary Large OBject
+            $table->text('note')->charset('binary')->nullable(); //BLOB Binary Large OBject
+            $table->timestamps();
         });
     }
 

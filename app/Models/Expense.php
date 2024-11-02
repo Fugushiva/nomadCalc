@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Expense extends Model
 {
     protected $fillable = [
-        'userId',
+        'user_id',
+        'title',
         'category',
         'amount',
         'currency',
@@ -17,6 +18,10 @@ class Expense extends Model
     ];
 
     protected $table = 'expenses';
+
+    protected $casts = [
+        'date' => 'datetime'
+    ];
 
     public $timestpamps = true;
 
