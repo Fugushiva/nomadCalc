@@ -8,7 +8,7 @@
                     <!--Category-->
                     <div class="flex gap-2">
                         <i class="fa-solid fa-layer-group mt-1"></i>
-                        <p class="text-gray-500">Type : <span class="text-gray-700">{{ $expense->category }}</span></p>
+                        <p class="text-gray-500">Type : <span class="text-gray-700">{{ $expense->category->name }}</span></p>
                     </div>
                     <!--Price-->
                     <div class="flex gap-2">

@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignId('category_id')->references('id')->on('categories')->onUpdate('cascade');
             $table->string('title');
-            $table->enum('category', ['logement', 'alimentation', 'transport', 'communication', 'santé','loisir', 'autre']);
             $table->decimal('amount', total:8, places:2);
             $table->enum('currency', ['CNY', 'THB', 'EUR']);
             $table->date('date');

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class ExpenseSeeder extends Seeder
             [
                 'userMail' => 'jeromedelodder90@gmail.com',
                 'title'=> 'Hotel Anaconda',
-                'category' => 'logement',
+                'categoryName' => 'logement',
                 'amount' => 1500,
                 'currency' => 'THB',
                 'date' => Carbon::create('2024', '05', '18')
@@ -33,9 +34,12 @@ class ExpenseSeeder extends Seeder
         
         foreach($expenses as &$expense){
             $user = User::where('email', '=', $expense['userMail'])->first();
+            $category = Category::where('name',"=", $expense["categoryName"])->first();
 
             $expense['user_id'] = $user->id;
+            $expense['category_id'] = $category->id;
             unset($expense['userMail']);
+            unset($expense['categoryName']);
         }
 
         Expense::insert($expenses);

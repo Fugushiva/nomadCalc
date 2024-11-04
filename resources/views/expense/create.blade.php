@@ -11,20 +11,22 @@
                 </div>
                 <div class="flex flex-col">
                     <label for="category" class="text-gray-600">Categorie</label>
-                    <select name="category" id="category" class="border border-gray-300 rounded-lg p-2">
-                        <option value="alimentation">Alimentation</option>
-                        <option value="transport">Transport</option>
-                        <option value="logement">Logement</option>
-                        <option value="loisir">Loisir</option>
-                        <option value="santé">Santé</option>
-                        <option value="autre">Autre</option>
+                    <select name="category_id" id="category" class="border border-gray-300 rounded-lg p-2">
+                        @foreach($categories as $category)
+                            <option value="{{$category->id}}">{{$category->name}}</option>
+                        @endforeach
                     </select>
+                    <!--Show tages here-->
+                    <div id="tagsContainer" class="grid grid-rows-3 grid-flow-col gap-4 py-4 cursor-pointer  ">
+                       
+                    </div>
                 </div>
                 
                 <div class="flex flex-col">
                     <label for="amount" class="text-gray-600">Montant</label>
                     <input type="number" id="amount" name="amount" class="border border-gray-300 rounded-lg p-2">
                 </div>
+
                 <div class="flex flex-col">
                     <label for="currency" class="text-gray-600">Devise</label>
                     <select name="currency" id="currency" class="border border-gray-300 rounded-lg p-2">
@@ -48,3 +50,4 @@
         </form>
     </section>
 </x-app-layout>
+@vite(['resources/js/showTags.js'])

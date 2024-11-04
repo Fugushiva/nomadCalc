@@ -23,7 +23,9 @@ class CreateExpenseRequest extends FormRequest
     {
         return [
             'title' => ['required','string','min:5', 'max:60'],
-            'category' => ['required','string'],
+            'category_id' => ['required','exists:categories,id'],
+            'tags' => ['array'],
+            'tags.*' => ['required','exists:tags,id'],
             'amount' => ['required','numeric'],
             'currency' => ['required','string'],
             'date' => ['required','date'],

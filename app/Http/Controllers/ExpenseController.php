@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
-use App\Models\User;
+use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Worksome\Exchange\Facades\Exchange;
 use App\Http\Requests\CreateExpenseRequest;
@@ -18,10 +19,10 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $expenses = Expense::get();
+        $expenses = Expense::with("category")->get();
         
         return view('expense.index', [
-            'expenses' => $expenses
+            'expenses' => $expenses,
         ]);
     }
 
@@ -30,7 +31,10 @@ class ExpenseController extends Controller
      */
     public function create()
     {
-        return view('expense.create',);
+        $categories = Category::all();
+        return view('expense.create',[
+            'categories'=> $categories
+        ]);
     }
 
     /**
@@ -41,7 +45,12 @@ class ExpenseController extends Controller
         $user = Auth::user();
         $validated = $request->validated();
         $validated['user_id'] = $user->id;
+
         $expense = Expense::create($validated);
+        
+        if($request->has('tags')){
+            $expense->tags()->sync($request->input('tags'));
+        }
       
         return redirect()->route('expense.index');
     }
@@ -51,7 +60,9 @@ class ExpenseController extends Controller
      */
     public function show(Expense $expense)
     {
-        $expense = Expense::find($expense->id);
+        $expense = Expense::with(['category', 'tags'])->find( $expense->id );
+
+       
 
         //exchange rate
         $baseCurrency = $expense->currency;
@@ -60,11 +71,7 @@ class ExpenseController extends Controller
         $exchangeRate = Exchange::rates($baseCurrency, ['EUR','THB', 'CNY']); //Definition of exchange rates
         $rates = $exchangeRate->getRates();
         $convertedAmount = round($amount * $rates[$targetCurrency],2); //get exchange
-        
-
-
-
-        
+                
         return view('expense.show', [
             'expense'=> $expense,
             'convertedAmount' =>$convertedAmount
@@ -76,9 +83,17 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
-        $expense = Expense::find($expense->id);
+        $expense = Expense::with(['category', 'tags'])->find($expense->id);
+        $categories = Category::all();
+        $expenseTags = $expense->tags->pluck('id')->toArray();
+        $tags = Tag::all();
+        
+
         return view('expense.edit', [
-            'expense'=> $expense
+            'expense'=> $expense,
+            'categories'=>$categories,
+            'expenseTags'=>$expenseTags,
+            'tags'=>$tags
         ]);
     }
 
@@ -89,9 +104,11 @@ class ExpenseController extends Controller
     {
         $expense = Expense::find($expense->id);
         $validated = $request->validated();
+        if($request->has('tags')){
+            $expense->tags()->sync($request->input('tags'));
+        }
         $expense->update($validated);
         
-
         return redirect()->route('expense.show', $expense->id);
     }
 

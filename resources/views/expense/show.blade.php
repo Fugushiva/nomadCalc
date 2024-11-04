@@ -3,7 +3,7 @@
         <div class="border-b pb-4 mb-4">
             <div class="flex gap-2">
                 <i class="fa-solid fa-layer-group mt-1"></i>
-                <p class="text-gray-500">Type : <span class="text-gray-700">{{ $expense->category }}</span></p>
+                <p class="text-gray-500">Type : <span class="text-gray-700">{{ $expense->category->name }}</span></p>
             </div>
             <!--Price-->
             <div class="flex gap-2">
@@ -16,6 +16,13 @@
             <div class="flex gap-2">
                 <i class="fa-solid fa-calendar-days mt-1"></i>
                 <p class="text-gray-500">Date : <span class="text-gray-700">{{ $expense->date->format('d-m-Y') }}</span></p>
+        </div>
+        <!--Tags-->
+        <div class="flex gap-2">
+            <i class="fa-solid fa-tag mt-2"></i><p class="text-gray-500 mt-1">Tag:</p>
+            @foreach ($expense->tags as $tag )
+                <p class="bg-grey-200 text-sky-600 p-1 rounded">{{$tag->name}}</p>
+            @endforeach
         </div>
         <div class="flex gap-4">
             <a class="text-blue-600 hover:text-blue-800 font-medium flex items-center" href="{{route('expense.edit', $expense->id)}}">
