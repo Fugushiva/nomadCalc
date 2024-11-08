@@ -8,7 +8,7 @@
             <!--Price-->
             <div class="flex gap-2">
                 <i class="fas fa-money-bill mt-1"></i>
-                <p class="text-gray-500">Prix : <span class="text-gray-700">{{ $expense->amount }} {{$expense->currency}} </span></p>
+                <p class="text-gray-500">Prix : <span class="text-gray-700">{{ $expense->amount }} {{$expense->currency->code}} </span></p>
                 <i class="fa-solid fa-arrow-right mt-1"></i>
                 <p> {{$convertedAmount}} €</p>
             </div>

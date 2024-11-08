@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             CategorySeeder::class,
+            CurrencySeeder::class,
             ExpenseSeeder::class,
             TagSeeder::class,
             ExpenseTagSeeder::class,

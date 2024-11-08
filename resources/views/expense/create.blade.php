@@ -29,10 +29,10 @@
 
                 <div class="flex flex-col">
                     <label for="currency" class="text-gray-600">Devise</label>
-                    <select name="currency" id="currency" class="border border-gray-300 rounded-lg p-2">
-                        <option value="THB">THB</option>
-                        <option value="CNY">CNY</option>
-                        <option value="EUR">EUR</option>
+                    <select name="currency_id" id="currency" class="border border-gray-300 rounded-lg p-2">
+                        @foreach ($currencies as $currency )
+                            <option value="{{$currency->id}}">{{$currency->name}}</option>                            
+                        @endforeach
                     </select>
                 </div>
                 <div class="flex flex-col">

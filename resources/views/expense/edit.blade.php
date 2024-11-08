@@ -34,13 +34,13 @@
                 </div>
                 <div class="flex flex-col">
                     <label for="currency" class="text-gray-600">Devise</label>
-                    <select name="currency" id="currency" class="border border-gray-300 rounded-lg p-2">
-                        <option value="THB" {{ old('currency', $expense->currency) == 'THB' ? 'selected' : '' }}>THB
-                        </option>
-                        <option value="CNY" {{ old('currency', $expense->currency) == 'CNY' ? 'selected' : '' }}>CNY
-                        </option>
-                        <option value="EUR" {{ old('currency', $expense->currency) == 'EUR' ? 'selected' : '' }}>EUR
-                        </option>
+                    <select name="currency_id" id="currency" class="border border-gray-300 rounded-lg p-2">
+                        @foreach ( $currencies as $currency )
+                            <option value="{{$currency->id}}"
+                                {{old('currency_id', $expense->currency_id) == $currency->id ? 'selected' : ''}}>
+                                {{$currency->code}}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="flex flex-col">

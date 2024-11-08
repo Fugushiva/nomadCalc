@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\Category;
 use App\Models\Tag;
-use Illuminate\Http\Request;
+use App\Models\currency;
 use Worksome\Exchange\Facades\Exchange;
 use App\Http\Requests\CreateExpenseRequest;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
-use function Laravel\Prompts\select;
 
 class ExpenseController extends Controller
 {
@@ -19,8 +19,8 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $expenses = Expense::with("category")->get();
-        
+        $expenses = Expense::with(["category", 'currency'])->get();
+
         return view('expense.index', [
             'expenses' => $expenses,
         ]);
@@ -32,8 +32,11 @@ class ExpenseController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('expense.create',[
-            'categories'=> $categories
+        $currencies = Currency::all();
+
+        return view('expense.create', [
+            'categories' => $categories,
+            'currencies' => $currencies
         ]);
     }
 
@@ -47,11 +50,11 @@ class ExpenseController extends Controller
         $validated['user_id'] = $user->id;
 
         $expense = Expense::create($validated);
-        
-        if($request->has('tags')){
+
+        if ($request->has('tags')) {
             $expense->tags()->sync($request->input('tags'));
         }
-      
+
         return redirect()->route('expense.index');
     }
 
@@ -60,21 +63,16 @@ class ExpenseController extends Controller
      */
     public function show(Expense $expense)
     {
-        $expense = Expense::with(['category', 'tags'])->find( $expense->id );
-
        
+        $expense = Expense::with(['category', 'tags'])->find($expense->id);
 
         //exchange rate
-        $baseCurrency = $expense->currency;
-        $targetCurrency = 'EUR';
-        $amount = $expense->amount;
-        $exchangeRate = Exchange::rates($baseCurrency, ['EUR','THB', 'CNY']); //Definition of exchange rates
-        $rates = $exchangeRate->getRates();
-        $convertedAmount = round($amount * $rates[$targetCurrency],2); //get exchange
-                
+        $convertedAmount = $this->exchangeRate( [$expense]);
+
         return view('expense.show', [
-            'expense'=> $expense,
-            'convertedAmount' =>$convertedAmount
+            'expense' => $expense,
+            'convertedAmount' => $convertedAmount,
+            
         ]);
     }
 
@@ -85,15 +83,17 @@ class ExpenseController extends Controller
     {
         $expense = Expense::with(['category', 'tags'])->find($expense->id);
         $categories = Category::all();
+        $currencies = Currency::all();
         $expenseTags = $expense->tags->pluck('id')->toArray();
         $tags = Tag::all();
-        
+
 
         return view('expense.edit', [
-            'expense'=> $expense,
-            'categories'=>$categories,
-            'expenseTags'=>$expenseTags,
-            'tags'=>$tags
+            'expense' => $expense,
+            'categories' => $categories,
+            'expenseTags' => $expenseTags,
+            'tags' => $tags,
+            'currencies' => $currencies	
         ]);
     }
 
@@ -104,11 +104,11 @@ class ExpenseController extends Controller
     {
         $expense = Expense::find($expense->id);
         $validated = $request->validated();
-        if($request->has('tags')){
+        if ($request->has('tags')) {
             $expense->tags()->sync($request->input('tags'));
         }
         $expense->update($validated);
-        
+
         return redirect()->route('expense.show', $expense->id);
     }
 
@@ -117,9 +117,74 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
-       
-       $expense->delete();
 
-       return redirect()->route('expense.index');
+        $expense->delete();
+
+        return redirect()->route('expense.index');
+    }
+
+    public function dashboard()
+    {
+        $expenses = Expense::getModel();
+
+        //last week expense
+        $lastWeekExpenses = $expenses::lastWeek()->with(['category', 'tags'])->get();
+        $totalAmount = $lastWeekExpenses->sum('amount');
+        $currencies = $this->getCurrencies($lastWeekExpenses);
+        
+        $exchangeRate = $this->ExchangeRate($lastWeekExpenses);
+       
+        
+
+
+
+
+        return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate'));
+    }
+
+    /**
+     * exange rate to EU from given currencies
+     * @param array $expense amount of the total of expense
+     * return covered amount
+     */
+
+    public function exchangeRate($expenses)
+    {
+        $convertedAmount = 0;
+        $targetCurrencies = ['EUR'];
+       
+        foreach($expenses as $expense){
+            
+            $expCurrency = $expense->currency->code;
+            $expAmount = $expense->amount;
+
+            //Get € rate
+            $exchangeRate = Exchange::rates($expCurrency, $targetCurrencies); 
+            $rates = $exchangeRate->getRates(); //dd($rates);
+            $expRate = array_values($rates); //dd($expRate);
+
+            $convertedAmount += round( $expAmount * $expRate[0], 2); //get exchange
+          
+
+        }
+      
+        return $convertedAmount;
+    }
+
+    /**
+     * Summary of getCurrencies
+     * @param \App\Models\Expense $expense
+     * @return array of currencies
+     */
+    public function getCurrencies($expenses)
+    {
+        $currencies = [];
+    
+        foreach ($expenses as $expense) {
+            if (!in_array($expense->currency->code, $currencies)) {
+                $currencies[] = $expense->currency->code;
+            }
+        }
+        return $currencies;
     }
 }

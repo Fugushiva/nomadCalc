@@ -17,9 +17,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreignId('category_id')->references('id')->on('categories')->onUpdate('cascade');
+            $table->foreignId('currency_id')->references('id')->on('currencies')->onDelete('cascade');
             $table->string('title');
             $table->decimal('amount', total:8, places:2);
-            $table->enum('currency', ['CNY', 'THB', 'EUR']);
             $table->date('date');
             $table->text('note')->charset('binary')->nullable(); //BLOB Binary Large OBject
             $table->timestamps();

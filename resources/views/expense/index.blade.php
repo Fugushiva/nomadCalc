@@ -14,7 +14,7 @@
                     <div class="flex gap-2">
                         <i class="fas fa-money-bill mt-1"></i>
                         <p class="text-gray-500">Prix : <span class="text-gray-700">{{ $expense->amount }}
-                                {{ $expense->currency }}</span></p>
+                                {{ $expense->currency->code }}</span></p>
                     </div>
                     <!--date-->
                     <div class="flex gap-2">
