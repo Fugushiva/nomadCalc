@@ -28,6 +28,7 @@ class ExpenseSeeder extends Seeder
                 'title'=> 'Hotel Anaconda',
                 'categoryName' => 'logement',
                 'amount' => 1500,
+                'converted_amount' => 40.84,
                 'currency' => 'THB',
                 'date' => Carbon::create('2024', '05', '18')
             ]

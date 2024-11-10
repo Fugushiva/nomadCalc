@@ -48,8 +48,10 @@ class ExpenseController extends Controller
         $user = Auth::user();
         $validated = $request->validated();
         $validated['user_id'] = $user->id;
-
+      
         $expense = Expense::create($validated);
+        $expense->converted_amount =  $this->exchangeRate([$expense]);
+        $expense->save();
 
         if ($request->has('tags')) {
             $expense->tags()->sync($request->input('tags'));
@@ -133,13 +135,15 @@ class ExpenseController extends Controller
         $currencies = $this->getCurrencies($lastWeekExpenses);
         
         $exchangeRate = $this->ExchangeRate($lastWeekExpenses);
+
+        $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
        
         
 
 
 
 
-        return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate'));
+        return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate', 'categoriesWithConvertedAmount'));
     }
 
     /**
@@ -154,7 +158,6 @@ class ExpenseController extends Controller
         $targetCurrencies = ['EUR'];
        
         foreach($expenses as $expense){
-            
             $expCurrency = $expense->currency->code;
             $expAmount = $expense->amount;
 
@@ -187,4 +190,36 @@ class ExpenseController extends Controller
         }
         return $currencies;
     }
+
+    private function getConvertedAmountsByCategory($expenses)
+{
+    $targetCurrencies = ['EUR']; // Monnaie cible
+    $categories = [];
+
+    foreach ($expenses as $expense) {
+        $categoryName = $expense->category->name;
+        $expCurrency = $expense->currency->code;
+        $expAmount = $expense->amount;
+
+        // Obtenir le taux de change vers l'euro
+        $exchangeRate = Exchange::rates($expCurrency, $targetCurrencies);
+        $rates = $exchangeRate->getRates();
+        $expRate = array_values($rates)[0]; // Premier taux de change
+
+        // Convertir le montant en euros
+        $amountInEuro = round($expAmount * $expRate, 2);
+
+        // Ajouter le montant à la catégorie correspondante
+        if (!isset($categories[$categoryName])) {
+            $categories[$categoryName] = 0;
+        }
+        $categories[$categoryName] += $amountInEuro;
+    }
+
+    return $categories;
+}
+
+    
+
+    
 }

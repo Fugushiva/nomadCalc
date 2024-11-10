@@ -11,9 +11,14 @@
                 <div class="p-6 text-gray-900">
                     <h2 class="text-xl ">Dépense de la semaine : {{$exchangeRate}} € </h2>
                     <hr>
-                    
+                    <div id='showCategories'>
+                        <canvas id="chartCanva">
+
+                        </canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
+@vite(['resources/js/showChart.js'])

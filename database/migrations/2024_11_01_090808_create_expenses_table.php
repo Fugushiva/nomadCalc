@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('currency_id')->references('id')->on('currencies')->onDelete('cascade');
             $table->string('title');
             $table->decimal('amount', total:8, places:2);
+            $table->decimal('converted_amount', total:8, places:2)->nullable(true);
             $table->date('date');
             $table->text('note')->charset('binary')->nullable(); //BLOB Binary Large OBject
             $table->timestamps();
