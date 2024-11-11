@@ -10,6 +10,7 @@ use Worksome\Exchange\Facades\Exchange;
 use App\Http\Requests\CreateExpenseRequest;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
 class ExpenseController extends Controller
@@ -127,17 +128,18 @@ class ExpenseController extends Controller
 
     public function dashboard()
     {
+        DB::enableQueryLog();
         $expenses = Expense::getModel();
 
         //last week expense
-        $lastWeekExpenses = $expenses::lastWeek()->with(['category', 'tags'])->get();
+        $lastWeekExpenses = $expenses::lastWeek()->with(['category'])->get();
         $totalAmount = $lastWeekExpenses->sum('amount');
         $currencies = $this->getCurrencies($lastWeekExpenses);
         
         $exchangeRate = $this->ExchangeRate($lastWeekExpenses);
 
         $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
-       
+
         
 
 
@@ -152,27 +154,34 @@ class ExpenseController extends Controller
      * return covered amount
      */
 
-    public function exchangeRate($expenses)
-    {
-        $convertedAmount = 0;
-        $targetCurrencies = ['EUR'];
-       
-        foreach($expenses as $expense){
-            $expCurrency = $expense->currency->code;
-            $expAmount = $expense->amount;
-
-            //Get € rate
-            $exchangeRate = Exchange::rates($expCurrency, $targetCurrencies); 
-            $rates = $exchangeRate->getRates(); //dd($rates);
-            $expRate = array_values($rates); //dd($expRate);
-
-            $convertedAmount += round( $expAmount * $expRate[0], 2); //get exchange
-          
-
-        }
-      
-        return $convertedAmount;
-    }
+     public function exchangeRate($expenses)
+     {
+         $convertedAmount = 0;
+         $targetCurrency = 'EUR';
+     
+         // Étape 1 : Récupérer toutes les devises uniques
+         $currencyCodes = $expenses->pluck('currency.code')->unique();
+     
+         // Étape 2 : Charger les taux de change pour toutes les devises en une seule fois
+         $exchangeRates = [];
+         foreach ($currencyCodes as $code) {
+             $rates = Exchange::rates($code, [$targetCurrency])->getRates();
+             $exchangeRates[$code] = array_values($rates)[0]; // Stocker le taux pour chaque devise
+         }
+     
+         // Étape 3 : Calculer le montant converti
+         foreach ($expenses as $expense) {
+             $expCurrency = $expense->currency->code;
+             $expAmount = $expense->amount;
+     
+             // Utiliser le taux de change préchargé
+             $expRate = $exchangeRates[$expCurrency];
+     
+             $convertedAmount += round($expAmount * $expRate, 2);
+         }
+     
+         return $convertedAmount;
+     }
 
     /**
      * Summary of getCurrencies
@@ -192,32 +201,41 @@ class ExpenseController extends Controller
     }
 
     private function getConvertedAmountsByCategory($expenses)
-{
-    $targetCurrencies = ['EUR']; // Monnaie cible
-    $categories = [];
-
-    foreach ($expenses as $expense) {
-        $categoryName = $expense->category->name;
-        $expCurrency = $expense->currency->code;
-        $expAmount = $expense->amount;
-
-        // Obtenir le taux de change vers l'euro
-        $exchangeRate = Exchange::rates($expCurrency, $targetCurrencies);
-        $rates = $exchangeRate->getRates();
-        $expRate = array_values($rates)[0]; // Premier taux de change
-
-        // Convertir le montant en euros
-        $amountInEuro = round($expAmount * $expRate, 2);
-
-        // Ajouter le montant à la catégorie correspondante
-        if (!isset($categories[$categoryName])) {
-            $categories[$categoryName] = 0;
+    {
+        $targetCurrency = 'EUR'; // Monnaie cible
+        $categories = [];
+    
+        // Étape 1 : Regrouper les devises uniques
+        $currencyCodes = $expenses->pluck('currency.code')->unique();
+    
+        // Étape 2 : Charger les taux de change pour toutes les devises en une seule fois
+        $exchangeRates = [];
+        foreach ($currencyCodes as $code) {
+            $rates = Exchange::rates($code, [$targetCurrency])->getRates();
+            $exchangeRates[$code] = array_values($rates)[0]; // Stocker le taux pour chaque devise
         }
-        $categories[$categoryName] += $amountInEuro;
+    
+        // Étape 3 : Parcourir les dépenses et convertir les montants
+        foreach ($expenses as $expense) {
+            $categoryName = $expense->category->name;
+            $expCurrency = $expense->currency->code;
+            $expAmount = $expense->amount;
+    
+            // Utiliser le taux de change préchargé
+            $expRate = $exchangeRates[$expCurrency];
+    
+            // Convertir le montant en euros
+            $amountInEuro = round($expAmount * $expRate, 2);
+    
+            // Ajouter le montant à la catégorie correspondante
+            if (!isset($categories[$categoryName])) {
+                $categories[$categoryName] = 0;
+            }
+            $categories[$categoryName] += $amountInEuro;
+        }
+    
+        return $categories;
     }
-
-    return $categories;
-}
 
     
 
