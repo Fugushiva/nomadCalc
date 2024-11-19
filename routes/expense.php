@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::get('/expense', [ExpenseController::class, 'index'])
         ->name('expense.index');
+        
+    route::get('/expense/search', [ExpenseController::class,'search'])
+        ->name('expense.search');
 
     Route::get('/expense/create', [ExpenseController::class,'create'])
         ->name('expense.create');
@@ -32,5 +35,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', [ExpenseController::class,'dashboard'])
         ->name('dashboard');
+
+  
 
     });

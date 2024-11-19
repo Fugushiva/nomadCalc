@@ -33,6 +33,16 @@ class Expense extends Model
         return $query->whereBetween('date', [Carbon::now()->subWeek(),Carbon::now()]);
     }
 
+    public function scopeMinPrice($query)
+    {
+        return $query->where('converted_amount', '>=', 0)->min('converted_amount');
+    }
+
+    public function scopeMaxPrice($query)
+    {
+        return $query->where('converted_amount', '>=',0)->max('converted_amount');
+    }
+
     //relations
     public function user(): BelongsTo
     {

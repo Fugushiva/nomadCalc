@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\currency;
 use Worksome\Exchange\Facades\Exchange;
 use App\Http\Requests\CreateExpenseRequest;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,14 +19,72 @@ class ExpenseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, Expense $expense)
     {
         $expenses = Expense::with(["category", 'currency'])->get();
+        $categories = Category::all();
+
+        $minPrice = $expense->minPrice();
+        $maxPrice = $expense->maxPrice();
 
         return view('expense.index', [
             'expenses' => $expenses,
+            'categories'=> $categories,
+            'minPrice'=> $minPrice,
+            'maxPrice'=> $maxPrice
         ]);
     }
+
+    public function search(Request $request, Expense $expense)
+    {
+        //Constant
+        $minPrice = $expense->minPrice();
+        $maxPrice = $expense->maxPrice();
+
+        //User input
+        $title = $request->title;
+        $categoryId = $request->category;
+        $minPriceInput = $request->price[0];
+        $maxPriceInput = $request->price[1];
+        $from = $request->schedule[0];
+        $to = $request->schedule[1];
+    
+        //create a dynamic request
+        $query = $expense->query();
+
+
+        //conditions for dynamic request
+        if(!empty($title)){
+            $query->where('title','like',"%$title%");
+        }
+        if(!empty($categoryId) && $categoryId != "Faites votre choix" && $categoryId != "------------------"){
+            $query->where("category_id", $categoryId);
+        }
+        if(!empty($minPriceInput)){
+            $query->where('converted_amount', '>=', $minPriceInput);
+        }
+        if(!empty($maxPriceInput)){
+            $query->where('converted_amount','<=', $maxPriceInput);
+        }
+        if(!empty($from)){
+            $query->where('date','>=', $from);
+        }
+        if(!empty($to)){
+            $query->where('date','<=', $to);
+        }
+
+        //add relations to dynamic request
+        $expenses = $query->with(['category', 'currency'])->get();
+        $categories = Category::all();
+
+        return view("expense.index", [
+            "expenses"=> $expenses,
+            "categories" => $categories, 
+            "minPrice"=> $minPrice,
+            "maxPrice"=> $maxPrice
+        ]);        
+    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -67,7 +126,7 @@ class ExpenseController extends Controller
     public function show(Expense $expense)
     {
        
-        $expense = Expense::with(['category', 'tags'])->find($expense->id);
+        $expense = Expense::with(['category', 'tags', "currency"])->find($expense->id);
 
         //exchange rate
         $convertedAmount = $this->exchangeRate( [$expense]);
@@ -148,6 +207,7 @@ class ExpenseController extends Controller
         return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate', 'categoriesWithConvertedAmount'));
     }
 
+
     /**
      * exange rate to EU from given currencies
      * @param array $expense amount of the total of expense
@@ -156,11 +216,18 @@ class ExpenseController extends Controller
 
      public function exchangeRate($expenses)
      {
+   
          $convertedAmount = 0;
          $targetCurrency = 'EUR';
      
-         // Étape 1 : Récupérer toutes les devises uniques
-         $currencyCodes = $expenses->pluck('currency.code')->unique();
+         // Étape 1 : Récupérer toutes les devises unique
+    
+         $currencyCodes = [];
+         foreach ($expenses as $expense) {
+            if(!in_array($expense->currency->code, $currencyCodes)) {
+                array_push($currencyCodes, $expense->currency->code);
+            }
+         }
      
          // Étape 2 : Charger les taux de change pour toutes les devises en une seule fois
          $exchangeRates = [];

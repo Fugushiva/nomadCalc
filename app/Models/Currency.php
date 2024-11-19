@@ -12,6 +12,6 @@ class Currency extends Model
     protected $table = 'currencies';
 
     public function expense(): HasOne{
-        return $this->hasOne(Expense::class);
+        return $this->hasOne(Expense::class,);
     }
 }
