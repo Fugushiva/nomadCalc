@@ -43,6 +43,10 @@ class Expense extends Model
         return $query->where('converted_amount', '>=',0)->max('converted_amount');
     }
 
+    public function getFormattedDateAttribute(){
+        return $this->date ? $this->date->format("d-m-Y") : null;
+    }
+
     //relations
     public function user(): BelongsTo
     {
