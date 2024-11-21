@@ -199,14 +199,13 @@ class ExpenseController extends Controller
 
         $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
 
-        
-
-
-
-
         return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate', 'categoriesWithConvertedAmount'));
     }
 
+    public function download(Expense $expenses){
+       $csvExporter = new \Laracsv\Export();
+       $csvExporter->build($expenses->with(["category", "currency"] )->get(), ["title","category.name", "amount", "currency.code", "converted_amount" => "amount in €", "date"])->download('expenses.csv');
+    }
 
     /**
      * exange rate to EU from given currencies

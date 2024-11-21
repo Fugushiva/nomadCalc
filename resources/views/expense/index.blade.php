@@ -74,6 +74,17 @@
                 </div>
             </form>
         </div>
+        <div class="flex mt-6 text-center gap-4">
+            <a
+                href="{{ route('expense.create') }}"
+                class="text-green-600 py-2 hover:text-green-800 underline font-semibold"
+            >
+                Ajouter une dépense
+            </a>
+            <!--download CSV-->
+            <a href="{{route('expense.download')}}" class="bg-green-600 text-white p-3 hover:bg-green-800">Télécharger en CSV</a>
+            
+        </div>
         <!-- Expenses List -->
         <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @if($expenses->isNotEmpty())
@@ -118,13 +129,6 @@
             @endif
         </div>
         <!-- Add Expense Link -->
-        <div class="mt-6 text-center">
-            <a
-                href="{{ route('expense.create') }}"
-                class="text-green-600 hover:text-green-800 underline font-semibold"
-            >
-                Ajouter une dépense
-            </a>
-        </div>
+  
     </section>
 </x-app-layout>
