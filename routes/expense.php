@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     Route::get('/expense', [ExpenseController::class, 'index'])
         ->name('expense.index');
+
+    route::get('/expense/dlcsv', [ExpenseController::class,"getCsv"])
+        ->name("expense.download");
         
     route::get('/expense/search', [ExpenseController::class,'search'])
         ->name('expense.search');

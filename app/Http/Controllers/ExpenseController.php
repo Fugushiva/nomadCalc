@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 
+
+
 class ExpenseController extends Controller
 {
     /**
@@ -21,6 +23,10 @@ class ExpenseController extends Controller
      */
     public function index(Request $request, Expense $expense)
     {
+        if($request->session()->has('expenses')){
+            $request->session()->forget('expenses');
+        }
+        //
         $expenses = Expense::with(["category", 'currency'])->get();
         $categories = Category::all();
 
@@ -73,8 +79,12 @@ class ExpenseController extends Controller
             $query->where('date','<=', $to);
         }
 
+       
+
         //add relations to dynamic request
         $expenses = $query->with(['category', 'currency'])->get();
+        $request->session()->put('expenses', $expenses);
+        //dd($request->session()->get('expenses'));
         $categories = Category::all();
 
         return view("expense.index", [
@@ -199,13 +209,58 @@ class ExpenseController extends Controller
 
         $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
 
-        
-
-
-
-
         return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate', 'categoriesWithConvertedAmount'));
     }
+
+    public function getCsv(Request $request, Expense $expense){
+        if( $request->session()->has('expenses') ){
+            $data = $request->session()->get('expenses');
+            $this->download($data);
+            $request->session()->forget('expenses');
+        }else{
+            $data = $expense->with(["category", "currency"] )->get();
+            $this->download($data);
+        }
+      
+
+    }
+
+    public function download($data){
+       $csvExporter = new \Laracsv\Export();
+       $expenses = $data;
+
+       //change date format
+        $csvExporter->beforeEach(function($expense){
+            $expense->title = mb_convert_encoding($expense->title,"UTF-8");
+        });
+        
+        //start buffering
+        ob_start();
+        // download the csv file
+       $csvExporter->build($expenses, [
+            "title" => "Titre",
+            "category.name" => "Catégorie", 
+            "amount" => "Montant", 
+            "currency.code" => "Devise",
+            "converted_amount" => "Montant €",
+            "formatted_date" => "Date"
+          ])->download("depense.csv");
+
+          //get the content of the buffer
+          $csvContent = ob_get_clean();
+          //replace the delimiter
+          $csvContentWithCustomDelimiter = str_replace(',',';', $csvContent);
+
+
+        //set the header
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="expenses.csv"');
+        //BOM for UTF-8 support
+        echo "\xEF\xBB\xBF";
+        //output the csv content
+        echo $csvContentWithCustomDelimiter;
+    }
+
 
 
     /**
@@ -220,7 +275,7 @@ class ExpenseController extends Controller
          $convertedAmount = 0;
          $targetCurrency = 'EUR';
      
-         // Étape 1 : Récupérer toutes les devises unique
+         // step 1 : Get all the unique currencies
     
          $currencyCodes = [];
          foreach ($expenses as $expense) {
@@ -229,19 +284,19 @@ class ExpenseController extends Controller
             }
          }
      
-         // Étape 2 : Charger les taux de change pour toutes les devises en une seule fois
+         // step 2 : load exchange rate once
          $exchangeRates = [];
          foreach ($currencyCodes as $code) {
              $rates = Exchange::rates($code, [$targetCurrency])->getRates();
              $exchangeRates[$code] = array_values($rates)[0]; // Stocker le taux pour chaque devise
          }
      
-         // Étape 3 : Calculer le montant converti
+         // Étape 3 : Calculate convert amount
          foreach ($expenses as $expense) {
              $expCurrency = $expense->currency->code;
              $expAmount = $expense->amount;
      
-             // Utiliser le taux de change préchargé
+             // get preload exchange rate
              $expRate = $exchangeRates[$expCurrency];
      
              $convertedAmount += round($expAmount * $expRate, 2);
@@ -303,8 +358,4 @@ class ExpenseController extends Controller
     
         return $categories;
     }
-
-    
-
-    
 }
