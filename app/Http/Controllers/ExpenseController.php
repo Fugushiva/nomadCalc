@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 
+
+
 class ExpenseController extends Controller
 {
     /**
@@ -21,6 +23,10 @@ class ExpenseController extends Controller
      */
     public function index(Request $request, Expense $expense)
     {
+        if($request->session()->has('expenses')){
+            $request->session()->forget('expenses');
+        }
+        //
         $expenses = Expense::with(["category", 'currency'])->get();
         $categories = Category::all();
 
@@ -73,8 +79,12 @@ class ExpenseController extends Controller
             $query->where('date','<=', $to);
         }
 
+       
+
         //add relations to dynamic request
         $expenses = $query->with(['category', 'currency'])->get();
+        $request->session()->put('expenses', $expenses);
+        //dd($request->session()->get('expenses'));
         $categories = Category::all();
 
         return view("expense.index", [
@@ -202,9 +212,22 @@ class ExpenseController extends Controller
         return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate', 'categoriesWithConvertedAmount'));
     }
 
-    public function download(){
+    public function getCsv(Request $request, Expense $expense){
+        if( $request->session()->has('expenses') ){
+            $data = $request->session()->get('expenses');
+            $this->download($data);
+            $request->session()->forget('expenses');
+        }else{
+            $data = $expense->with(["category", "currency"] )->get();
+            $this->download($data);
+        }
+      
+
+    }
+
+    public function download($data){
        $csvExporter = new \Laracsv\Export();
-       $expenses = Expense::with(["category", "currency"] )->get();
+       $expenses = $data;
 
        //change date format
         $csvExporter->beforeEach(function($expense){
