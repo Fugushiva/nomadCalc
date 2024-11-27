@@ -200,6 +200,10 @@ class ExpenseController extends Controller
         DB::enableQueryLog();
         $expenses = Expense::getModel();
 
+        //today expenses
+        $todayExpenses = $expenses::today()->with(['category', 'user'])->get();
+        $todayConvertedAmount = $todayExpenses->sum('converted_amount');
+
         //last week expense
         $lastWeekExpenses = $expenses::lastWeek()->with(['category'])->get();
         $totalAmount = $lastWeekExpenses->sum('amount');
@@ -209,7 +213,14 @@ class ExpenseController extends Controller
 
         $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
 
-        return view('dashboard', compact('expenses', 'lastWeekExpenses', 'exchangeRate', 'categoriesWithConvertedAmount'));
+        return view('dashboard', compact(
+            'expenses',
+            'lastWeekExpenses',
+            'exchangeRate',
+            'categoriesWithConvertedAmount',
+            'todayExpenses',
+            'todayConvertedAmount'
+        ));
     }
 
     public function getCsv(Request $request, Expense $expense){
