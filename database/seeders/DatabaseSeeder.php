@@ -17,9 +17,11 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             CurrencySeeder::class,
+            TripSeeder::class,
             ExpenseSeeder::class,
             TagSeeder::class,
             ExpenseTagSeeder::class,
+            UserTripSeeder::class,
         ]);
     }
 }

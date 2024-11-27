@@ -16,17 +16,17 @@
                             <option value="{{$category->id}}">{{$category->name}}</option>
                         @endforeach
                     </select>
-                    <!--Show tages here-->
+                    <!--Show tags here-->
                     <div id="tagsContainer" class="grid grid-rows-3 grid-flow-col gap-4 py-4 cursor-pointer  ">
                        
                     </div>
                 </div>
-                
+                <!--amount-->
                 <div class="flex flex-col">
                     <label for="amount" class="text-gray-600">Montant</label>
                     <input type="number" id="amount" name="amount" class="border border-gray-300 rounded-lg p-2">
                 </div>
-
+                <!--Currency-->
                 <div class="flex flex-col">
                     <label for="currency" class="text-gray-600">Devise</label>
                     <select name="currency_id" id="currency" class="border border-gray-300 rounded-lg p-2">
@@ -35,16 +35,29 @@
                         @endforeach
                     </select>
                 </div>
+                <!--date-->
                 <div class="flex flex-col">
                     <label for="date" class="text-gray-600">Date</label>
                     <input type="date" id="date" name="date" class="border border-gray-300 rounded-lg p-2">
                 </div>
+                <!--Trip-->
+                <div>
+                    <label for="trip">Voyage</label>
+                    <select name="trip_id" id="trip" class="border border-gray-300 rounded-lg p-2">
+                        @foreach ($trips as $trip)
+                            <option value="{{$trip->id}}">{{$trip->title}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <!--description-->
                 <div class="flex flex-col">
                     <label for="description" class="text-gray-600">Description</label>
                     <textarea name="description" id="description" cols="30" rows="10"
                         class="border border-gray-300 rounded-lg p-2"></textarea>
                 </div>
-                <div class="flex flex-col">
+            </div>
+            <!--Bouton d'envoi-->
+                <div class="flex flex-col mx-auto w-6/12 mt-4">
                     <button class="bg-green-500 text-white p-2 rounded-lg">Ajouter</button>
                 </div>
         </form>

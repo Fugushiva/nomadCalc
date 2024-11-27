@@ -13,6 +13,7 @@ class Expense extends Model
     protected $fillable = [
         'user_id',
         'category_id',
+        'trip_id',
         'currency_id',
         'title',
         'amount',
@@ -71,6 +72,10 @@ class Expense extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    public function trip(){
+        return $this->belongsTo(Trip::class);
     }
     
 

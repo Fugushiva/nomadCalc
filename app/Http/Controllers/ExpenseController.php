@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\currency;
 use Worksome\Exchange\Facades\Exchange;
 use App\Http\Requests\CreateExpenseRequest;
+use App\Models\Trip;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -101,12 +102,16 @@ class ExpenseController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+
         $categories = Category::all();
         $currencies = Currency::all();
+        $trips = $user->trips()->get();
 
         return view('expense.create', [
             'categories' => $categories,
-            'currencies' => $currencies
+            'currencies' => $currencies,
+            "trips" => $trips
         ]);
     }
 
@@ -198,21 +203,44 @@ class ExpenseController extends Controller
     public function dashboard()
     {
         DB::enableQueryLog();
+        $user = Auth::user();
         $expenses = Expense::getModel();
+        //get current trip
+        $trip = $user->trips()
+            ->where('start_date','<=', Carbon::now())
+            ->where('end_date','>=', Carbon::now())
+            ->first();
 
         //today expenses
-        $todayExpenses = $expenses::today()->with(['category', 'user'])->get();
-        $todayConvertedAmount = $todayExpenses->sum('converted_amount');
+        if($trip){
+            $todayExpenses = $expenses::today()->with(['category', 'user', 'trip'])->where("trip_id", $trip->id)->get();
+            $todayConvertedAmount = $todayExpenses->sum('converted_amount');
+        }else{
+            $todayConvertedAmount = 0;
+            $todayExpenses = [];
+        }
 
         //last week expense
-        $lastWeekExpenses = $expenses::lastWeek()->with(['category'])->get();
-        $totalAmount = $lastWeekExpenses->sum('amount');
-        $currencies = $this->getCurrencies($lastWeekExpenses);
-        
-        $exchangeRate = $this->ExchangeRate($lastWeekExpenses);
-
-        $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
-
+        if($trip){
+            $lastWeekExpenses = $expenses::lastWeek()->with(['category'])->where("trip_id", $trip->id)->get();
+            $totalAmount = $lastWeekExpenses->sum('amount');
+            $currencies = $this->getCurrencies($lastWeekExpenses);
+            
+            $exchangeRate = $this->ExchangeRate($lastWeekExpenses);
+    
+            $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
+    
+        } else{
+            $lastWeekExpenses = [];
+            $totalAmount = 0;
+            $currencies = $this->getCurrencies($lastWeekExpenses);
+            
+            $exchangeRate = $this->ExchangeRate($lastWeekExpenses);
+    
+            $categoriesWithConvertedAmount = $this->getConvertedAmountsByCategory($lastWeekExpenses);
+    
+        }
+       
         return view('dashboard', compact(
             'expenses',
             'lastWeekExpenses',
@@ -339,34 +367,38 @@ class ExpenseController extends Controller
         $categories = [];
     
         // Étape 1 : Regrouper les devises uniques
-        $currencyCodes = $expenses->pluck('currency.code')->unique();
-    
-        // Étape 2 : Charger les taux de change pour toutes les devises en une seule fois
-        $exchangeRates = [];
-        foreach ($currencyCodes as $code) {
-            $rates = Exchange::rates($code, [$targetCurrency])->getRates();
-            $exchangeRates[$code] = array_values($rates)[0]; // Stocker le taux pour chaque devise
-        }
-    
-        // Étape 3 : Parcourir les dépenses et convertir les montants
-        foreach ($expenses as $expense) {
-            $categoryName = $expense->category->name;
-            $expCurrency = $expense->currency->code;
-            $expAmount = $expense->amount;
-    
-            // Utiliser le taux de change préchargé
-            $expRate = $exchangeRates[$expCurrency];
-    
-            // Convertir le montant en euros
-            $amountInEuro = round($expAmount * $expRate, 2);
-    
-            // Ajouter le montant à la catégorie correspondante
-            if (!isset($categories[$categoryName])) {
-                $categories[$categoryName] = 0;
+        if ($expenses) {
+            $currencyCodes = $expenses->pluck('currency.code')->unique();
+            
+        
+            // Étape 2 : Charger les taux de change pour toutes les devises en une seule fois
+            $exchangeRates = [];
+            foreach ($currencyCodes as $code) {
+                $rates = Exchange::rates($code, [$targetCurrency])->getRates();
+                $exchangeRates[$code] = array_values($rates)[0]; // Stocker le taux pour chaque devise
             }
-            $categories[$categoryName] += $amountInEuro;
+        
+            // Étape 3 : Parcourir les dépenses et convertir les montants
+            foreach ($expenses as $expense) {
+                $categoryName = $expense->category->name;
+                $expCurrency = $expense->currency->code;
+                $expAmount = $expense->amount;
+        
+                // Utiliser le taux de change préchargé
+                $expRate = $exchangeRates[$expCurrency];
+        
+                // Convertir le montant en euros
+                $amountInEuro = round($expAmount * $expRate, 2);
+        
+                // Ajouter le montant à la catégorie correspondante
+                if (!isset($categories[$categoryName])) {
+                    $categories[$categoryName] = 0;
+                }
+                $categories[$categoryName] += $amountInEuro;
+            }
+
+        
+            return $categories;
         }
-    
-        return $categories;
     }
 }
