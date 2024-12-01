@@ -60,4 +60,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Trip::class, "users_trips");
     }
+
+    public function roles(): BelongsToMany{
+        return $this->belongsToMany(Role::class);
+    }
 }
