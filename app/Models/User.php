@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -59,5 +60,18 @@ class User extends Authenticatable
     public function trips(): BelongsToMany
     {
         return $this->belongsToMany(Trip::class, "users_trips");
+    }
+
+    public function roles(): BelongsToMany{
+        return $this->belongsToMany(Role::class, "users_roles");
+    }
+
+    public function isAdmin()
+    {
+       return $this->roles->contains("name","admin");
+    }
+
+    public function assignRole(Role $role){
+        $this->roles()->attach($role);
     }
 }

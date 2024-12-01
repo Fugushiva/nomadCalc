@@ -20,8 +20,10 @@ class DatabaseSeeder extends Seeder
             TripSeeder::class,
             ExpenseSeeder::class,
             TagSeeder::class,
+            RoleSeeder::class,
             ExpenseTagSeeder::class,
             UserTripSeeder::class,
+            UserRoleSeeder::class,
         ]);
     }
 }

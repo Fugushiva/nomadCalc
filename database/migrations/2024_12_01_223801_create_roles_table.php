@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tags', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->string('name');
+            $table->string('slug');
+            $table->timestamps();
         });
     }
 
@@ -22,11 +23,7 @@ return new class extends Migration
      * Reverse the migrations.
      */
     public function down(): void
-    {  
-        Schema::table('tags', function(Blueprint $table){
-            $table->dropForeign(['category_id']);
-        });
-
-        Schema::dropIfExists('tags');
+    {
+        Schema::dropIfExists('roles');
     }
 };
