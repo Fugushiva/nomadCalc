@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('expense_tag', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('expense_id')->references('id')->on('expenses');
-            $table->foreignId('tag_id')->references('id')->on('tags');
+            $table->foreignId('expense_id')->references('id')->on('expenses')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('tag_id')->references('id')->on('tags')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
@@ -23,6 +23,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('expenses_tags');
+        Schema::table('expense_tag', function(Blueprint $table){
+            $table->dropForeign(['tag_id']);
+        });
+
+        Schema::table('expense_tag', function(Blueprint $table){
+            $table->dropForeign(['expense_id']);
+        });
+        Schema::dropIfExists('expense_tag');
     }
 };

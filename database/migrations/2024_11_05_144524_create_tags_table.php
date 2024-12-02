@@ -22,7 +22,11 @@ return new class extends Migration
      * Reverse the migrations.
      */
     public function down(): void
-    {
+    {  
+        Schema::table('tags', function(Blueprint $table){
+            $table->dropForeign(['category_id']);
+        });
+
         Schema::dropIfExists('tags');
     }
 };
