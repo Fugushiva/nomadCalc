@@ -1,23 +1,28 @@
 <x-app-layout>
     <section class="w-11/12 max-w-7xl mx-auto py-8">
         <!-- Search Form -->
-        <div class="mt-4">
-            <form method="get" action="{{ route('expense.search') }}" class="flex gap-4 items-center">
+        <div class="mt-4 bg-gray-100 p-6 rounded-lg shadow-sm">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Rechercher des dépenses</h2>
+            <form 
+                method="get" 
+                action="{{ route('expense.search') }}" 
+                class="flex flex-wrap gap-4 items-center lg:flex-nowrap"
+            >
                 @csrf
                 <!-- Title -->
-                <div class="flex">
+                <div class="flex-none w-full lg:w-auto">
                     <input
                         type="text"
                         name="title"
                         placeholder="Titre"
-                        class="p-2 rounded border border-gray-300 focus:ring focus:ring-blue-300"
+                        class="w-[250px] p-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-300"
                     />
                 </div>
                 <!-- Category -->
-                <div class="flex">
+                <div class="flex-none w-full lg:w-auto">
                     <select
                         name="category"
-                        class="p-2 rounded border border-gray-300 focus:ring focus:ring-blue-300"
+                        class="w-[250px] p-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-300"
                     >
                         <option>Faites votre choix</option>
                         <option>------------------</option>
@@ -27,71 +32,76 @@
                     </select>
                 </div>
                 <!-- Price Range -->
-                <div class="flex flex-wrap gap-4">
-                    <div>
-                        <!--min-->
+                <div class="flex gap-4 flex-wrap lg:flex-nowrap">
+                    <div class="flex-none">
                         <input
-                            class="w-full p-2 rounded border border-gray-300 focus:ring focus:ring-blue-300"
                             type="number"
                             name="price[]"
-                            min="{{ $minPrice }}"
-                            max="{{ $maxPrice }}"
-                            placeholder="min €"
+                            placeholder="Min (€)"
+                            class="w-[120px] p-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-300"
                         />
                     </div>
-                    <div>
-                        <!--max-->
+                    <div class="flex-none">
                         <input
-                            class="w-full p-2 rounded border border-gray-300 focus:ring focus:ring-blue-300"
                             type="number"
                             name="price[]"
-                            min="{{ $minPrice }}"
-                            max="{{ $maxPrice }}"
-                            placeholder="max €"
+                            placeholder="Max (€)"
+                            class="w-[120px] p-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-300"
                         />
                     </div>
                 </div>
-                <!--date range-->
-                <div class="flex text-center gap-2">
-                    <div>
-                        <!--from-->
-                        <label> De </label>
-                        <input type="date" name="schedule[]">
+                <!-- Date Range -->
+                <div class="flex gap-4 flex-wrap lg:flex-nowrap">
+                    <div class="flex-none">
+                        <label class="block text-sm font-medium text-gray-700">De</label>
+                        <input
+                            type="date"
+                            name="schedule[]"
+                            class="w-[150px] p-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-300"
+                        />
                     </div>
-                    <div>
-                        <!--to-->
-                        <label> A </label>
-                        <input type="date" name="schedule[]">
+                    <div class="flex-none">
+                        <label class="block text-sm font-medium text-gray-700">À</label>
+                        <input
+                            type="date"
+                            name="schedule[]"
+                            class="w-[150px] p-3 rounded-lg border border-gray-300 focus:ring focus:ring-blue-300"
+                        />
                     </div>
                 </div>
-                <div>
+                <!-- Submit Button -->
+                <div class="flex-none">
                     <button
                         type="submit"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 transition-all"
+                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-500 transition-all"
                     >
-                        Envoyer
+                        Rechercher
                     </button>
                 </div>
             </form>
         </div>
-        <div class="flex mt-6 text-center gap-4">
+
+        <!-- Actions -->
+        <div class="flex flex-wrap mt-6 gap-4 items-center justify-between">
             <a
                 href="{{ route('expense.create') }}"
-                class="text-green-600 py-2 hover:text-green-800 underline font-semibold"
+                class="text-green-600 hover:text-green-800 underline font-semibold"
             >
                 Ajouter une dépense
             </a>
-            <!--download CSV-->
-            <a href="{{route('expense.download')}}" class="bg-green-600 text-white p-3 hover:bg-green-800">Télécharger en CSV</a>
-            
+            <a
+                href="{{ route('expense.download') }}"
+                class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-800"
+            >
+                Télécharger en CSV
+            </a>
         </div>
+
         <!-- Expenses List -->
         <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @if($expenses->isNotEmpty())
                 @foreach ($expenses as $expense)
-                    <div
-                        class="border border-gray-200 rounded-lg shadow-sm p-6 bg-white hover:shadow-md transition-shadow duration-200"
-                    >
+                    <div class="border border-gray-200 rounded-lg shadow-sm p-6 bg-white hover:shadow-md transition-shadow duration-200">
                         <h2 class="text-xl font-semibold text-gray-800">{{ $expense->title }}</h2>
                         <!-- Category -->
                         <div class="flex items-center gap-2 mt-2">
@@ -128,7 +138,5 @@
                 </div>
             @endif
         </div>
-        <!-- Add Expense Link -->
-  
     </section>
 </x-app-layout>
