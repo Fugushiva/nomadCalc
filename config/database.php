@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Str;
 
+$databaseCredentials = require base_path('config/database_credentials.php');
+
 return [
 
     /*
@@ -28,6 +30,7 @@ return [
     | is supported by Laravel. You're free to add / remove connections.
     |
     */
+
 
     'connections' => [
 
@@ -62,14 +65,16 @@ return [
             ]) : [],
         ],
 
+    
+
         'mariadb' => [
-            'driver' => 'mariadb',
+            'driver' => $databaseCredentials['DB_CONNECTION'],
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => $databaseCredentials['DB_HOST'],
+            'port' => $databaseCredentials['DB_PORT'],
+            'database' => $databaseCredentials['DB_DATABASE'],
+            'username' => $databaseCredentials['DB_USERNAME'],
+            'password' => $databaseCredentials['DB_PASSWORD'],
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),

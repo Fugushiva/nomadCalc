@@ -19,3 +19,25 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+# Bloquer l'accès aux fichiers sensibles
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+<Files composer.json>
+    Order allow,deny
+    Deny from all
+</Files>
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+<FilesMatch "\.(bak|config|sql|swp|git|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
