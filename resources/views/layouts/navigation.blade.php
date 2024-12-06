@@ -44,7 +44,7 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
                         @if(Auth::user()->isAdmin())
-                            <x-dropdown-link :href="route('filament.admin.pages.dashboard')">
+                            <x-dropdown-link :href="route('filament.admin.auth.login')">
                                 {{ __("Panneau d'admin") }}
                             </x-dropdown-link>
                         @endif

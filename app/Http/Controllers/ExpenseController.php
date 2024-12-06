@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\Category;
 use App\Models\Tag;
-use App\Models\currency;
+use App\Models\Currency;
 use Worksome\Exchange\Facades\Exchange;
 use App\Http\Requests\CreateExpenseRequest;
 use App\Models\Trip;
@@ -55,7 +55,6 @@ class ExpenseController extends Controller
         $maxPriceInput = $request->price[1];
         $from = $request->schedule[0];
         $to = $request->schedule[1];
-    
         //create a dynamic request
         $query = $expense->query();
 
@@ -210,6 +209,7 @@ class ExpenseController extends Controller
             ->where('start_date','<=', Carbon::now())
             ->where('end_date','>=', Carbon::now())
             ->first();
+
 
         //today expenses
         if($trip){
