@@ -12,3 +12,7 @@ Route::get('/tag/create', [TagController::class, 'create'])
 
 Route::post('/tag', [TagController::class, 'store'])
     ->name('tag.store');
+
+Route::delete('/tag/{tag}', [TagController::class, 'destroy'])
+    ->where('id', '[0-9]+')
+    ->name('tag.delete');
