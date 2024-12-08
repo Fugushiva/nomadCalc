@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateTagRequest;
 use App\Models\Category;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -27,15 +28,25 @@ class TagController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+        
+
+        return view('tag.create', [
+            'categories' => $categories
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CreateTagRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $tag = Tag::create($validated);
+        $tag->save();
+
+        return redirect()->route('tag.index');
     }
 
     /**
